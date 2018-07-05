@@ -1,0 +1,60 @@
+##Step 1. Run the Code (Chromosome 22)
+
+
+
+vcf-query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/AMR_AF\t%INFO/AFR_AF\t%INFO/EUR_AF\t%INFO/EAS_AF\t%INFO/SAS_AF\n' ALL.chr22_GRCh38.genotypes.20170504.vcf.gz > /home/projects/mixtures/Kendra/final.out
+
+##Step 2. Save Step 1 as a txt file. Optional.  
+
+data<-read.table("final.out", sep="\t", fill=TRUE, header=FALSE, as.is = !F)
+
+write.table(data, "/home/projects/mixtures/Kendra/data.txt")
+
+## Step 3. Read in the file nrows=1000 makes it easier to manipulate the file
+
+##If need be setwd ("/home/projects/mixtures/Kendra")
+
+data<-read.table("data.txt", nrows=1000)
+
+## Step 4 seperate the commas into two seperate lines
+
+temp.out <- c()
+for(j in 1:nrow(data))
+{
+	temp <- as.character(data$ALT[j])
+	tmp<-unlist(strsplit(temp,","))
+	new <- as.data.frame(matrix(nrow = length(tmp), ncol = 9))
+	new[,4] <- tmp
+	temp <- as.character(data$AMR_AF[j])
+	tmp<-unlist(strsplit(temp,","))
+	new[,5] <- tmp
+	temp <- as.character(data$AFR_AF[j])
+	tmp<-unlist(strsplit(temp,","))
+	new[,6] <- tmp
+	temp <- as.character(data$EUR_AF[j])
+	tmp<-unlist(strsplit(temp,","))
+	temp <- as.character(data$EAS_AF[j])
+	new[,7] <- tmp
+	temp <- as.character(data$EAS_AF[j])
+	tmp<-unlist(strsplit(temp,","))
+	new[,8] <- tmp
+	temp <- as.character(data$SAS_AF[j])
+	tmp<-unlist(strsplit(temp,","))
+	new[,9] <- tmp
+	new[,1:3] <- data[j,1:3]
+	temp.out<-rbind(temp.out, new)
+}
+
+##Step 5 remove variants w/ alleles <1% in all population or >99% in all pop
+
+temp2<-temp.out[!(temp.out$V5<0.01&temp.out$V6< 0.01&temp.out$V7<0.01&temp.out$V8<0.01&temp.out$V9<0.01),]
+
+temp3<-temp2[!(temp2$V5>0.99&temp2$V6>0.99&temp2$V7>0.99&temp2$V8>0.99&temp2$V9>0.99),]
+
+##Step 6 Print out the updated Chromosome 22
+
+colnames(temp3) [1:9] <- c("CHROM","POS","REF","ALT","AMR_AF","AFR_AF","EUR_AF","EAS_AF","SAS_AF")
+
+write.table(temp3, "/home/projects/mixtures/Kendra/temp3", quote=F,row.names=F, sep="\t")
+
+
